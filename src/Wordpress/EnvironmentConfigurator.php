@@ -10,22 +10,40 @@ use Dotenv\Dotenv;
 class EnvironmentConfigurator
 {
   /**
-   * @var $dotenvpath
+   * Required environment variables.
    */
-  public static function init($dotenvpath = null)
+  const REQUIRED_ENV = [
+    'DB_NAME',
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_CHARSET',
+    'DB_COLLATE',
+    'DB_PREFIX',
+    'WP_ENV',
+    'ROOT_DIR',
+    'PUBLIC_DIR'
+  ];
+
+  /**
+   * Initialize environment configuration.
+   * 
+   * @param string $configpath
+   * @param bool $dotenvpath
+   */
+  public static function init($configpath, $dotenvpath = null)
   {
     static::loadEnvironmentVariables($dotenvpath);
     static::setWPConstants();
     static::setFilesystemConstants();
     static::setDBConstants();
-    static::loadSalts();
+    static::loadSalts($configpath);
     static::setCacheConstants();
   }
 
   /**
    * Load ENV data
    * 
-   * @var string $dotenvpath 
+   * @param string $dotenvpath 
    */
   protected static function loadEnvironmentVariables($dotenvpath)
   {
@@ -41,17 +59,15 @@ class EnvironmentConfigurator
        */
       $dotenv = Dotenv::create($dotenvpath);
 
-      $dotenv->required([
-        'DB_NAME',
-        'DB_USER',
-        'DB_PASSWORD',
-        'DB_CHARSET',
-        'DB_COLLATE',
-        'DB_PREFIX',
-        'WP_ENV',
-        'ROOT_DIR',
-        'PUBLIC_DIR'
-      ]);
+      $dotenv->required(static::REQUIRED_ENV);
+
+      return;
+    }
+
+    foreach (static::REQUIRED_ENV as $vname) {
+      if (env($vname) == null) {
+        throw new \Exception("Error when seaching for ${$vname} variable.");
+      }
     }
   }
 
@@ -161,12 +177,13 @@ class EnvironmentConfigurator
     /**
      * Custom Settings
      */
-    
+
     define('WP_MEMORY_LIMIT', '128M');
     define('WP_MAX_MEMORY_LIMIT', '256M');
   }
 
-  protected static function setCacheConstants() {
+  protected static function setCacheConstants()
+  {
     if (!defined('WP_CACHE')) {
       // WP-Cache
       define('WP_CACHE', true); //Added by WP-Cache Manager
@@ -203,6 +220,8 @@ class EnvironmentConfigurator
 
   protected static function setDBConstants()
   {
+    global $table_prefix;
+
     // ** MySQL settings - You can get this info from your web host ** //
     /** The name of the database for WordPress */
     define('DB_NAME', env('DB_NAME'));
@@ -231,7 +250,12 @@ class EnvironmentConfigurator
     $table_prefix = env('DB_PREFIX') ?: 'wp_';
   }
 
-  protected function loadSalts()
+  /**
+   * Load/Generate salts file.
+   * 
+   * @param string $configpath 
+   */
+  protected function loadSalts($configpath, $replace = true)
   {
     /**#@+
      * Authentication Unique Keys and Salts.
@@ -243,10 +267,10 @@ class EnvironmentConfigurator
      * @since 2.6.0
      */
 
-    $salts_file = __DIR__ . '/wp-salts.php';
+    $salts_file = $configpath . '/wp-salts.php';
 
-    if (!file_exists($salts_file, false)) {
-      SaltsGenerator::buildFile($salts_file);
+    if (!file_exists($salts_file)) {
+      SaltsGenerator::buildFile($salts_file, $replace);
     }
 
     include_once($salts_file);
