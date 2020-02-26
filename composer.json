@@ -1,0 +1,30 @@
+{
+  "name": "isaactorresmichel/wpappconf",
+  "description": "Wordpress app base configuration",
+  "type": "project",
+  "license": "MIT",
+  "homepage": "http://crayon.com.mx",
+  "authors": [
+    {
+      "name": "Isaac Torres Michel",
+      "email": "isaac@crayon.com.mx",
+      "homepage": "https://crayon.com.mx"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "vlucas/phpdotenv": "^3.3",
+    "oscarotero/env": "^1.1",
+    "symfony/filesystem": "^4.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "isaactorresmichel\\WPAppConf\\": "src"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "7.1.3"
+    }
+  }
+}
