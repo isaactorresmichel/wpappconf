@@ -19,11 +19,6 @@ class SaltsGenerator
    */
   public static function getFromAPI()
   {
-    if (PHP_SAPI !== 'cli') {
-      throw new \Exception('SaltsGenerator should be invoked via the CLI version of PHP, not the '
-        . PHP_SAPI . ' SAPI' . PHP_EOL);
-    }
-
     $response = file_get_contents('https://api.wordpress.org/secret-key/1.1/salt/');
 
     if (!$response) {
